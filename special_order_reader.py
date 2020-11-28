@@ -11,15 +11,17 @@ import csv, os
 # os - used for finding the csv file to be read
 
 #TO DO
-# Let you choose a file if multiple CSV files are found
-# Let the user only choose between lightspeed special order CSV files somehow
 # export findings to CSV
+
+# Let the user choose a store from where the preorders are from OR
+# choose if it's all stores instead
+
+# print out can show counts by store
 
 def start_read():
 
     found_names = find_csv_names()
-    choice = choose_csv(found_names)
-    orders = retrieve_orders(choice)
+    orders = retrieve_orders(found_names)
     show_order_totals(orders)
 
 def find_csv_names():
@@ -29,48 +31,50 @@ def find_csv_names():
 
     return [file for file in os.listdir(dir_path) if file.endswith('.csv')]
 
-def choose_csv(found_names):
-
-    if len(found_names) > 1:
-
-        print('Make sure there is only one .csv. Will make this work better later.')
-
-        print(found_names)
-        
-        exit()
-
-    else:
-
-        return found_names[0]
 
 def retrieve_orders(csv_name):
 
     counts = {}
 
-    with open(csv_name, newline='') as csvfile:
+    print('\nFile Status\n')
 
-        reader = csv.reader(csvfile)
+    special_order_header = ['Started', 'Description', 'Qty',
+                            'Cost', 'Retail', 'Subtotal',
+                            'Tax', 'Total Tax', 'Total',
+                            'Margin', 'Customer', 'Employee']
 
-        # Relevant CSV Headers
-        # 'Description' [1] - Product Name
-        # 'Qty' [2] - amount of product on order
+    for file in csv_name:
 
-        next(reader)
+        with open(file, newline='') as csvfile:
 
-        #data = list(reader)
+            reader = csv.reader(csvfile)
+            
+            # Relevant Special Order CSV Headers
+            # 'Description' [1] - Product Name
+            # 'Qty' [2] - amount of product on order
 
-        for row in reader:
+            current_header = next(reader)
 
-            prod_name = row[1]
-            qty_ordered = int(row[2])
+            if current_header != special_order_header:
 
-            if prod_name in counts:
-
-                counts[prod_name] += qty_ordered
+                print(f'X --> {file} is not a Lightspeed Retail Special Order CSV File\n')
 
             else:
 
-                counts[prod_name] = qty_ordered
+                for row in reader:
+
+                    prod_name = row[1]
+                    qty_ordered = int(row[2])
+
+                    if prod_name in counts:
+
+                        counts[prod_name] += qty_ordered
+
+                    else:
+
+                        counts[prod_name] = qty_ordered
+
+                print(f'O --> {file} successfully read.\n')
 
     return counts
 
